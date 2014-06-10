@@ -42,9 +42,6 @@ function prefix_updater_settings( $setting ) {
 	/* The author's name */
 	$data['author'] = 'Pippin Williamson';
 
-	/* Renew Link */
-	$data['renew_link'] = $data['remote_api_url'] . '/checkout';
-
 	if ( isset( $data[$setting] ) ) {
 		return $data[$setting];
 	}
@@ -303,10 +300,7 @@ function prefix_check_license() {
 	$expires = false;
 	if ( isset( $license_data->expires ) ) {
 		$expires = date_i18n( get_option( 'date_format' ), strtotime( $license_data->expires ) );
-		$renew_link = prefix_updater_settings( 'renew_link' );
-		if ( $renew_link ) {
-			$renew_link = '<a href="' . esc_url( $renew_link ) . '">' . __( 'Renew?', 'textdomain' ) . '</a>';
-		}
+		$renew_link = '<a href="' . esc_url( prefix_updater_settings( 'remote_api_url' ) ) . '">' . __( 'Renew?', 'textdomain' ) . '</a>';
 	}
 
 	if ( $license_data->license == 'valid' ) {
