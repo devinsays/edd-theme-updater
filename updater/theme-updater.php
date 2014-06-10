@@ -3,7 +3,7 @@
  * This is just a demonstration of how theme licensing works with
  * Easy Digital Downloads.
  *
- * @package EDD Sample Theme
+ * @package EDD Theme Updater
  */
 
 /**
@@ -34,15 +34,22 @@ function prefix_updater_settings( $setting ) {
 	$data['remote_api_url'] = 'http://yoursite.com';
 
 	/* The name of this theme */
-	$data['theme_slug'] = 'edd-sample-theme';
+	$data['theme_slug'] = 'edd-theme-updater';
 
 	/* The current theme version we are running */
-	$data['version'] = '0.9';
+	$data['version'] = '0.1.0';
 
 	/* The author's name */
 	$data['author'] = 'Pippin Williamson';
 
-	return $data[$setting];
+	/* Renew Link */
+	$data['renew_link'] = $data['remote_api_url'] . '/checkout';
+
+	if ( isset( $data[$setting] ) ) {
+		return $data[$setting];
+	}
+
+	return false;
 }
 
 /**
@@ -286,10 +293,20 @@ function prefix_check_license() {
 
 	$license_data = json_decode( wp_remote_retrieve_body( $response ) );
 
-	/* Get expire date. */
+	// If response doesn't include license data, return
+	if ( !isset( $license_data->license ) ) {
+		$message =  __( 'License status is unknown.', 'textdomain' );
+		return $message;
+	}
+
+	// Get expire date
 	$expires = false;
-	if ( $license_data->expires ) {
+	if ( isset( $license_data->expires ) ) {
 		$expires = date_i18n( get_option( 'date_format' ), strtotime( $license_data->expires ) );
+		$renew_link = prefix_updater_settings( 'renew_link' );
+		if ( $renew_link ) {
+			$renew_link = '<a href="' . esc_url( $renew_link ) . '">' . __( 'Renew?', 'textdomain' ) . '</a>';
+		}
 	}
 
 	if ( $license_data->license == 'valid' ) {
@@ -298,21 +315,25 @@ function prefix_check_license() {
 			$message .= sprintf( __( ' Expires %s.', 'textdomain' ), $expires );
 		}
 	} else if ( $license_data->license == 'expired' ) {
-		$message = __( 'License key has expired.', 'textdomain' );
 		if ( $expires ) {
-			$message .= sprintf( __( ' Expired %s.', 'textdomain' ), $expires );
+			$message = sprintf( __( 'License key expired %s.', 'textdomain' ), $expires );
+		} else {
+			$message = __( 'License key has expired.', 'textdomain' );
+		}
+		if ( $renew_link ) {
+			$message .= ' ' . $renew_link;
 		}
 	} else if ( $license_data->license == 'invalid' ) {
 		$message =  __( 'License keys do not match.', 'textdomain' );
 	} else if ( $license_data->license == 'inactive' ) {
 		$message =  __( 'License is inactive.', 'textdomain' );
 	} else if ( $license_data->license == 'disabled' ) {
-		$message =  __( 'License key is disabled.', 'textdomain' ) . '</span>';
+		$message =  __( 'License key is disabled.', 'textdomain' );
 	} else if ( $license_data->license == 'site_inactive' ) {
 		// Site is inactive
-		$message =  __( 'Site is inactive.', 'textdomain' ) . '</span>';
+		$message =  __( 'Site is inactive.', 'textdomain' );
 	} else {
-		$message =  __( 'License status is unknown.', 'textdomain' ) . '</span>';
+		$message =  __( 'License status is unknown.', 'textdomain' );
 	}
 
 	return $message;
