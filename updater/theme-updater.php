@@ -15,11 +15,6 @@
  * 4. Delete this doc block
  */
 
-if ( !class_exists( 'EDD_SL_Theme_Updater' ) ) {
-	// Load our custom theme updater
-	include( dirname( __FILE__ ) . '/theme-updater-class.php' );
-}
-
 /**
  * Returns settings required by the theme updater.
  *
@@ -54,14 +49,28 @@ function prefix_updater_settings( $setting ) {
  *
  * since 1.0.0
  */
-new EDD_SL_Theme_Updater( array(
-		'remote_api_url' 	=> prefix_updater_settings( 'remote_api_url' ),
-		'version' 			=> prefix_updater_settings( 'version' ),
-		'license' 			=> trim( get_option( 'prefix_license_key' ) ),
-		'item_name' 		=> prefix_updater_settings( 'theme_slug' ),
-		'author'			=> prefix_updater_settings( 'author' )
-	)
-);
+function prefix_updater() {
+
+	/* If there is no valid license key status, don't allow updates. */
+	if ( get_option( 'prefix_license_key_status', false) != 'valid' ) {
+		return;
+	}
+
+	if ( !class_exists( 'EDD_SL_Theme_Updater' ) ) {
+		// Load our custom theme updater
+		include( dirname( __FILE__ ) . '/theme-updater-class.php' );
+	}
+
+	new EDD_SL_Theme_Updater( array(
+			'remote_api_url' 	=> prefix_updater_settings( 'remote_api_url' ),
+			'version' 			=> prefix_updater_settings( 'version' ),
+			'license' 			=> trim( get_option( 'prefix_license_key' ) ),
+			'item_name' 		=> prefix_updater_settings( 'theme_slug' ),
+			'author'			=> prefix_updater_settings( 'author' )
+		)
+	);
+}
+add_action( 'admin_init', 'prefix_updater' );
 
 /**
  * Adds a menu item for the theme license under the appearance menu.
@@ -70,7 +79,8 @@ function prefix_license_menu() {
 	add_theme_page(
 		__( 'Theme License', 'textdomain' ),
 		__( 'Theme License', 'textdomain' ),
-		'manage_options', 'themename-license',
+		'manage_options',
+		'prefix-license',
 		'prefix_license_page'
 	);
 }
@@ -98,7 +108,7 @@ function prefix_license_page() {
 	}
 	?>
 	<div class="wrap">
-		<h2><?php _e( 'Theme License Options', 'textdomain' ); ?></h2>
+		<h2><?php _e( 'Theme License', 'textdomain' ); ?></h2>
 		<form method="post" action="options.php">
 
 			<?php settings_fields( 'prefix_license' ); ?>
@@ -125,7 +135,7 @@ function prefix_license_page() {
 						</th>
 						<td>
 							<?php
-							wp_nonce_field( 'prefix_sample_nonce', 'prefix_sample_nonce' );
+							wp_nonce_field( 'prefix_nonce', 'prefix_nonce' );
 							if ( 'valid' == $status ) { ?>
 								<input type="submit" class="button-secondary" name="prefix_license_deactivate" value="<?php esc_attr_e( 'Deactivate License', 'textdomain' ); ?>"/>
 							<?php } else { ?>
@@ -251,13 +261,13 @@ function prefix_deactivate_license() {
 function prefix_license_action() {
 
 	if ( isset( $_POST['prefix_license_activate'] ) ) {
-		if ( check_admin_referer( 'prefix_sample_nonce', 'prefix_sample_nonce' ) ) {
+		if ( check_admin_referer( 'prefix_nonce', 'prefix_nonce' ) ) {
 			prefix_activate_license();
 		}
 	}
 
 	if ( isset( $_POST['prefix_license_deactivate'] ) ) {
-		if ( check_admin_referer( 'prefix_sample_nonce', 'prefix_sample_nonce' ) ) {
+		if ( check_admin_referer( 'prefix_nonce', 'prefix_nonce' ) ) {
 			prefix_deactivate_license();
 		}
 	}
