@@ -1,4 +1,10 @@
 <?php
+/**
+ * Theme updater class.
+ *
+ * @package EDD Theme Updater
+ */
+
 class EDD_SL_Theme_Updater {
 	private $remote_api_url;
 	private $request_data;
