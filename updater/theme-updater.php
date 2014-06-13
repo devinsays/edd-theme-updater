@@ -11,7 +11,7 @@
  *
  * 1. Find/replace "prefix" with your theme prefix (in all updater files)
  * 2. Find/replace "textdomain" with your theme textdomain (in all updater files)
- * 3. Update the variables in prefix_theme_info()
+ * 3. Update the variables in prefix_updater_settings()
  * 4. Delete this doc block
  */
 
