@@ -275,11 +275,23 @@ function prefix_check_license() {
 		$expires = date_i18n( get_option( 'date_format' ), strtotime( $license_data->expires ) );
 		$renew_link = '<a href="' . esc_url( prefix_updater_settings( 'remote_api_url' ) ) . '">' . __( 'Renew?', 'textdomain' ) . '</a>';
 	}
+	
+	// Get site counts
+	$site_count = $license_data->site_count;
+	$license_limit = $license_data->license_limit;
+	
+	// If unlimited
+	if( 0 == $license_limit ) {
+		$license_limit = __( 'unlimited', 'textdomain' );
+	}
 
 	if ( $license_data->license == 'valid' ) {
-		$message = __( 'License key is active.', 'textdomain' );
+		$message = __( 'License key is active.', 'textdomain' ) . ' ';
 		if ( $expires ) {
-			$message .= sprintf( __( ' Expires %s.', 'textdomain' ), $expires );
+			$message .= sprintf( __( 'Expires %s.', 'textdomain' ), $expires ) . ' ';
+		}
+		if ( $site_count && $license_limit ) {
+			$message .= sprintf( _n( 'You have %1$s / %2$s site activated.', 'You have %1$s / %2$s sites activated.', $site_count, 'kulkuri' ), $site_count, $license_limit );
 		}
 	} else if ( $license_data->license == 'expired' ) {
 		if ( $expires ) {
