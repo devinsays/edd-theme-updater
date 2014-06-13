@@ -35,6 +35,8 @@ add_action( 'admin_init', 'prefix_updater' );
 
 /**
  * Adds a menu item for the theme license under the appearance menu.
+ *
+ * since 1.0.0
  */
 function prefix_license_menu() {
 	add_theme_page(
@@ -157,8 +159,8 @@ function prefix_activate_license() {
 	// Data to send in our API request.
 	$api_params = array(
 		'edd_action' => 'activate_license',
-		'license' => $license,
-		'item_name' => urlencode( prefix_updater_settings( 'theme_slug' ) )
+		'license'    => $license,
+		'item_name'  => urlencode( prefix_updater_settings( 'theme_slug' ) )
 	);
 
 	// Call the custom API.
@@ -191,9 +193,9 @@ function prefix_deactivate_license() {
 
 	// Data to send in our API request.
 	$api_params = array(
-		'edd_action'=> 'deactivate_license',
-		'license' 	=> $license,
-		'item_name' => urlencode( prefix_updater_settings( 'theme_slug' ) )
+		'edd_action' => 'deactivate_license',
+		'license'    => $license,
+		'item_name'  => urlencode( prefix_updater_settings( 'theme_slug' ) )
 	);
 
 	// Call the custom API.
@@ -249,8 +251,8 @@ function prefix_check_license() {
 
 	$api_params = array(
 		'edd_action' => 'check_license',
-		'license' => $license,
-		'item_name' => urlencode( prefix_updater_settings( 'theme_slug' ) )
+		'license'    => $license,
+		'item_name'  => urlencode( prefix_updater_settings( 'theme_slug' ) )
 	);
 
 	$response = wp_remote_get( add_query_arg( $api_params, prefix_updater_settings( 'remote_api_url' ) ), array( 'timeout' => 15, 'sslverify' => false ) );
@@ -263,7 +265,7 @@ function prefix_check_license() {
 
 	// If response doesn't include license data, return
 	if ( !isset( $license_data->license ) ) {
-		$message =  __( 'License status is unknown.', 'textdomain' );
+		$message = __( 'License status is unknown.', 'textdomain' );
 		return $message;
 	}
 
@@ -289,16 +291,16 @@ function prefix_check_license() {
 			$message .= ' ' . $renew_link;
 		}
 	} else if ( $license_data->license == 'invalid' ) {
-		$message =  __( 'License keys do not match.', 'textdomain' );
+		$message = __( 'License keys do not match.', 'textdomain' );
 	} else if ( $license_data->license == 'inactive' ) {
-		$message =  __( 'License is inactive.', 'textdomain' );
+		$message = __( 'License is inactive.', 'textdomain' );
 	} else if ( $license_data->license == 'disabled' ) {
-		$message =  __( 'License key is disabled.', 'textdomain' );
+		$message = __( 'License key is disabled.', 'textdomain' );
 	} else if ( $license_data->license == 'site_inactive' ) {
 		// Site is inactive
-		$message =  __( 'Site is inactive.', 'textdomain' );
+		$message = __( 'Site is inactive.', 'textdomain' );
 	} else {
-		$message =  __( 'License status is unknown.', 'textdomain' );
+		$message = __( 'License status is unknown.', 'textdomain' );
 	}
 
 	return $message;
