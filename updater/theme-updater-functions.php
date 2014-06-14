@@ -84,7 +84,7 @@ function prefix_license_page() {
 							<?php _e( 'License Key', 'textdomain' ); ?>
 						</th>
 						<td>
-							<input id="prefix_license_key" name="prefix_license_key" type="text" class="regular-text" value="<?php esc_attr_e( $license ); ?>" />
+							<input id="prefix_license_key" name="prefix_license_key" type="text" class="regular-text" value="<?php echo esc_attr( $license ); ?>" />
 							<p class="description">
 								<?php echo $message; ?>
 							</p>
