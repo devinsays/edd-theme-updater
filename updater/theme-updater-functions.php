@@ -23,11 +23,11 @@ function prefix_updater() {
 	}
 
 	new EDD_SL_Theme_Updater( array(
-			'remote_api_url' 	=> prefix_updater_settings( 'remote_api_url' ),
-			'version' 			=> prefix_updater_settings( 'version' ),
-			'license' 			=> trim( get_option( 'prefix_license_key' ) ),
-			'item_name' 		=> prefix_updater_settings( 'theme_slug' ),
-			'author'			=> prefix_updater_settings( 'author' )
+			'remote_api_url' => prefix_updater_settings( 'remote_api_url' ),
+			'version'        => prefix_updater_settings( 'version' ),
+			'license'        => trim( get_option( 'prefix_license_key' ) ),
+			'item_name'      => prefix_updater_settings( 'theme_slug' ),
+			'author'         => prefix_updater_settings( 'author' )
 		)
 	);
 }
@@ -84,7 +84,7 @@ function prefix_license_page() {
 							<?php _e( 'License Key', 'textdomain' ); ?>
 						</th>
 						<td>
-							<input id="prefix_license_key" name="prefix_license_key" type="text" class="regular-text" value="<?php esc_attr_e( $license ); ?>" />
+							<input id="prefix_license_key" name="prefix_license_key" type="text" class="regular-text" value="<?php echo esc_attr( $license ); ?>" />
 							<p class="description">
 								<?php echo $message; ?>
 							</p>
@@ -103,8 +103,7 @@ function prefix_license_page() {
 								<input type="submit" class="button-secondary" name="prefix_license_deactivate" value="<?php esc_attr_e( 'Deactivate License', 'textdomain' ); ?>"/>
 							<?php } else { ?>
 								<input type="submit" class="button-secondary" name="prefix_license_activate" value="<?php esc_attr_e( 'Activate License', 'textdomain' ); ?>"/>
-							<?php }
-							?>
+							<?php } ?>
 						</td>
 					</tr>
 					<?php } ?>
@@ -291,7 +290,7 @@ function prefix_check_license() {
 			$message .= sprintf( __( 'Expires %s.', 'textdomain' ), $expires ) . ' ';
 		}
 		if ( $site_count && $license_limit ) {
-			$message .= sprintf( _n( 'You have %1$s / %2$s site activated.', 'You have %1$s / %2$s sites activated.', $site_count, 'kulkuri' ), $site_count, $license_limit );
+			$message .= sprintf( _n( 'You have %1$s / %2$s site activated.', 'You have %1$s / %2$s sites activated.', $site_count, 'textdomain' ), $site_count, $license_limit );
 		}
 	} else if ( $license_data->license == 'expired' ) {
 		if ( $expires ) {
