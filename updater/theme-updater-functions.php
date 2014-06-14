@@ -291,7 +291,7 @@ function prefix_check_license() {
 			$message .= sprintf( __( 'Expires %s.', 'textdomain' ), $expires ) . ' ';
 		}
 		if ( $site_count && $license_limit ) {
-			$message .= sprintf( _n( 'You have %1$s / %2$s site activated.', 'You have %1$s / %2$s sites activated.', $site_count, 'kulkuri' ), $site_count, $license_limit );
+			$message .= sprintf( _n( 'You have %1$s / %2$s site activated.', 'You have %1$s / %2$s sites activated.', $site_count, 'textdomain' ), $site_count, $license_limit );
 		}
 	} else if ( $license_data->license == 'expired' ) {
 		if ( $expires ) {
