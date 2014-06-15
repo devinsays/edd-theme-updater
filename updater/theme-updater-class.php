@@ -5,7 +5,8 @@
  * @package EDD Theme Updater
  */
 
-class EDD_SL_Theme_Updater {
+class Prefix_Theme_Updater {
+
 	private $remote_api_url;
 	private $request_data;
 	private $response_key;
@@ -98,6 +99,7 @@ class EDD_SL_Theme_Updater {
 	function check_for_update() {
 
 		$update_data = get_transient( $this->response_key );
+
 		if ( false === $update_data ) {
 			$failed = false;
 
@@ -111,7 +113,7 @@ class EDD_SL_Theme_Updater {
 
 			$response = wp_remote_post( $this->remote_api_url, array( 'timeout' => 15, 'body' => $api_params ) );
 
-			// make sure the response was successful
+			// Make sure the response was successful
 			if ( is_wp_error( $response ) || 200 != wp_remote_retrieve_response_code( $response ) ) {
 				$failed = true;
 			}
@@ -122,7 +124,7 @@ class EDD_SL_Theme_Updater {
 				$failed = true;
 			}
 
-			// if the response failed, try again in 30 minutes
+			// If the response failed, try again in 30 minutes
 			if ( $failed ) {
 				$data = new stdClass;
 				$data->new_version = $this->version;
@@ -130,7 +132,7 @@ class EDD_SL_Theme_Updater {
 				return false;
 			}
 
-			// if the status is 'ok', return the update arguments
+			// If the status is 'ok', return the update arguments
 			if ( ! $failed ) {
 				$update_data->sections = maybe_unserialize( $update_data->sections );
 				set_transient( $this->response_key, $update_data, strtotime( '+12 hours' ) );
@@ -143,4 +145,5 @@ class EDD_SL_Theme_Updater {
 
 		return (array) $update_data;
 	}
+
 }
