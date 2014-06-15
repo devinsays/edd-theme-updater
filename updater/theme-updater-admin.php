@@ -116,7 +116,7 @@ class Prefix_Theme_Updater_Admin {
 								<?php _e( 'License Key', 'textdomain' ); ?>
 							</th>
 							<td>
-								<input id="prefix_license_key" name="prefix_license_key" type="text" class="regular-text" value="<?php esc_attr_e( $license ); ?>" />
+								<input id="prefix_license_key" name="prefix_license_key" type="text" class="regular-text" value="<?php echo esc_attr( $license ); ?>" />
 								<p class="description">
 									<?php echo $message; ?>
 								</p>
@@ -336,7 +336,7 @@ class Prefix_Theme_Updater_Admin {
 				$message .= sprintf( __( 'Expires %s.', 'textdomain' ), $expires ) . ' ';
 			}
 			if ( $site_count && $license_limit ) {
-				$message .= sprintf( _n( 'You have %1$s / %2$s site activated.', 'You have %1$s / %2$s sites activated.', $site_count, 'kulkuri' ), $site_count, $license_limit );
+				$message .= sprintf( _n( 'You have %1$s / %2$s site activated.', 'You have %1$s / %2$s sites activated.', $site_count, 'textdomain' ), $site_count, $license_limit );
 			}
 		} else if ( $license_data->license == 'expired' ) {
 			if ( $expires ) {
