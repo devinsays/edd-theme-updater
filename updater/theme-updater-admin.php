@@ -32,10 +32,10 @@ class Prefix_Theme_Updater_Admin {
 		$this->author = $args['remote_api_url'];
 
 		add_action( 'admin_init', array( $this, 'updater' ) );
-		add_action( 'admin_menu', array( $this, 'prefix_license_menu' ) );
-		add_action( 'admin_init', array( $this, 'prefix_register_option' ) );
-		add_action( 'update_option_prefix_license_key', array( $this, 'activate_license' ), 10, 2 );
+		add_action( 'admin_init', array( $this, 'register_option' ) );
 		add_action( 'admin_init', array( $this, 'license_action' ) );
+		add_action( 'admin_menu', array( $this, 'license_menu' ) );
+		add_action( 'update_option_prefix_license_key', array( $this, 'activate_license' ), 10, 2 );
 
 	}
 
@@ -58,7 +58,7 @@ class Prefix_Theme_Updater_Admin {
 
 		new Prefix_Theme_Updater( array(
 				'remote_api_url' 	=> $this->remote_api_url,
-				'version' 			=> updater_settings( 'version' ),
+				'version' 			=> $this->version,
 				'license' 			=> trim( get_option( 'prefix_license_key' ) ),
 				'item_name' 		=> $this->theme_slug,
 				'author'			=> $this->author
@@ -71,7 +71,7 @@ class Prefix_Theme_Updater_Admin {
 	 *
 	 * since 1.0.0
 	 */
-	function prefix_license_menu() {
+	function license_menu() {
 		add_theme_page(
 			__( 'Theme License', 'textdomain' ),
 			__( 'Theme License', 'textdomain' ),
@@ -153,7 +153,7 @@ class Prefix_Theme_Updater_Admin {
 	 *
 	 * since 1.0.0
 	 */
-	function prefix_register_option() {
+	function register_option() {
 		register_setting(
 			'prefix_license',
 			'prefix_license_key',
@@ -224,10 +224,10 @@ class Prefix_Theme_Updater_Admin {
 			'item_name'  => urlencode( $this->theme_slug )
 		);
 
-		$license_data = get_api_response( $api_params );
+		$license_data = $this->get_api_response( $api_params );
 
+		// $response->license will be either "active" or "inactive"
 		if ( $license_data && isset( $license_data->license ) ) {
-			// $response->license will be either "active" or "inactive"
 			update_option( 'prefix_license_key_status', $license_data->license );
 			delete_transient( 'prefix_license_message' );
 		}
@@ -251,7 +251,7 @@ class Prefix_Theme_Updater_Admin {
 			'item_name'  => urlencode( $this->theme_slug )
 		);
 
-		$license_data = get_api_response( $api_params );
+		$license_data = $this->get_api_response( $api_params );
 
 		// $license_data->license will be either "deactivated" or "failed"
 		if ( $license_data && ( $license_data->license == 'deactivated' ) ) {
@@ -298,7 +298,7 @@ class Prefix_Theme_Updater_Admin {
 			'item_name'  => urlencode( $this->theme_slug )
 		);
 
-		$license_data = get_api_response( $api_params );
+		$license_data = $this->get_api_response( $api_params );
 
 		// If response doesn't include license data, return
 		if ( !isset( $license_data->license ) ) {
@@ -328,7 +328,7 @@ class Prefix_Theme_Updater_Admin {
 				$message .= sprintf( __( 'Expires %s.', 'textdomain' ), $expires ) . ' ';
 			}
 			if ( $site_count && $license_limit ) {
-				$message .= sprintf( _n( 'You have %1$s / %2$s site activated.', 'You have %1$s / %2$s sites activated.', $site_count, 'textdomain' ), $site_count, $license_limit );
+				$message .= sprintf( __( 'You have %1$s / %2$s sites activated.', 'textdomain' ), $site_count, $license_limit );
 			}
 		} else if ( $license_data->license == 'expired' ) {
 			if ( $expires ) {
