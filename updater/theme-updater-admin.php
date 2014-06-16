@@ -97,7 +97,7 @@ class Prefix_Theme_Updater_Admin {
 		} else {
 			// delete_transient( 'prefix_license_message' );
 			if ( ! get_transient( 'prefix_license_message', false ) ) {
-				set_transient( 'prefix_license_message', $this->prefix_check_license(), ( 60 * 60 * 24 ) );
+				set_transient( 'prefix_license_message', $this->check_license(), ( 60 * 60 * 24 ) );
 			}
 			$message = get_transient( 'prefix_license_message' );
 		}
@@ -183,6 +183,32 @@ class Prefix_Theme_Updater_Admin {
 	}
 
 	/**
+	 * Makes a call to the API.
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array $api_params to be used for wp_remote_get.
+	 * @return array $response decoded JSON response.
+	 */
+	 function get_api_response( $api_params ) {
+
+		 // Call the custom API.
+		$response = wp_remote_get(
+			add_query_arg( $api_params, $this->remote_api_url ),
+			array( 'timeout' => 15, 'sslverify' => false )
+		);
+
+		// Make sure the response came back okay.
+		if ( is_wp_error( $response ) ) {
+			return false;
+		}
+
+		$response = json_decode( wp_remote_retrieve_body( $response ) );
+
+		return $response;
+	 }
+
+	/**
 	 * Activates the license key.
 	 *
 	 * @since 1.0.0
@@ -198,21 +224,10 @@ class Prefix_Theme_Updater_Admin {
 			'item_name'  => urlencode( $this->theme_slug )
 		);
 
-		// Call the custom API.
-		$response = wp_remote_get(
-			add_query_arg( $api_params, $this->remote_api_url ),
-			array( 'timeout' => 15, 'sslverify' => false )
-		);
-
-		// Make sure the response came back okay.
-		if ( is_wp_error( $response ) ) {
-			return false;
-		}
-
-		$license_data = json_decode( wp_remote_retrieve_body( $response ) );
+		$license_data = get_api_response( $api_params );
 
 		if ( $license_data && isset( $license_data->license ) ) {
-			// $license_data->license will be either "active" or "inactive"
+			// $response->license will be either "active" or "inactive"
 			update_option( 'prefix_license_key_status', $license_data->license );
 			delete_transient( 'prefix_license_message' );
 		}
@@ -229,7 +244,6 @@ class Prefix_Theme_Updater_Admin {
 		// Retrieve the license from the database.
 		$license = trim( get_option( 'prefix_license_key' ) );
 
-
 		// Data to send in our API request.
 		$api_params = array(
 			'edd_action' => 'deactivate_license',
@@ -237,23 +251,10 @@ class Prefix_Theme_Updater_Admin {
 			'item_name'  => urlencode( $this->theme_slug )
 		);
 
-		// Call the custom API.
-		$response = wp_remote_get( add_query_arg(
-			$api_params,
-			$this->remote_api_url),
-			array( 'timeout' => 15, 'sslverify' => false )
-		);
-
-		// Make sure the response came back okay
-		if ( is_wp_error( $response ) ) {
-			return false;
-		}
-
-		// decode the license data
-		$license_data = json_decode( wp_remote_retrieve_body( $response ) );
+		$license_data = get_api_response( $api_params );
 
 		// $license_data->license will be either "deactivated" or "failed"
-		if ( $license_data->license == 'deactivated' ) {
+		if ( $license_data && ( $license_data->license == 'deactivated' ) ) {
 			delete_option( 'prefix_license_key_status' );
 			delete_transient( 'prefix_license_message' );
 		}
@@ -287,7 +288,7 @@ class Prefix_Theme_Updater_Admin {
 	 *
 	 * @return string $message License status message.
 	 */
-	function prefix_check_license() {
+	function check_license() {
 
 		$license = trim( get_option( 'prefix_license_key' ) );
 
@@ -297,16 +298,7 @@ class Prefix_Theme_Updater_Admin {
 			'item_name'  => urlencode( $this->theme_slug )
 		);
 
-		$response = wp_remote_get(
-			add_query_arg( $api_params, $this->remote_api_url ),
-			array( 'timeout' => 15, 'sslverify' => false )
-		);
-
-		if ( is_wp_error( $response ) ) {
-			return false;
-		}
-
-		$license_data = json_decode( wp_remote_retrieve_body( $response ) );
+		$license_data = get_api_response( $api_params );
 
 		// If response doesn't include license data, return
 		if ( !isset( $license_data->license ) ) {
