@@ -5,7 +5,7 @@
  * @package EDD Theme Updater
  */
 
-class Prefix_Theme_Updater {
+class EDD_Theme_Updater {
 
 	private $remote_api_url;
 	private $request_data;
@@ -35,12 +35,6 @@ class Prefix_Theme_Updater {
 		$this->author = $author;
 		$this->remote_api_url = $remote_api_url;
 		$this->response_key = $this->theme_slug . '-update-response';
-
-		// Populate fallbacks
-		if ( '' == $version ) {
-			$theme = wp_get_theme( $this->theme_slug );
-			$this->version = $theme->get( 'Version' );
-		}
 
 		add_filter( 'site_transient_update_themes', array( &$this, 'theme_update_transient' ) );
 		add_filter( 'delete_site_transient_update_themes', array( &$this, 'delete_theme_update_transient' ) );
