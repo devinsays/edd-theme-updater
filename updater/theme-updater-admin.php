@@ -53,6 +53,7 @@ class EDD_Theme_Updater_Admin {
 		add_action( 'admin_init', array( $this, 'license_action' ) );
 		add_action( 'admin_menu', array( $this, 'license_menu' ) );
 		add_action( 'update_option_' . $this->theme_slug . '_license_key', array( $this, 'activate_license' ), 10, 2 );
+		add_filter( 'http_request_args', array( $this, 'disable_wporg_request' ), 5, 2 );
 
 	}
 
@@ -370,6 +371,35 @@ class EDD_Theme_Updater_Admin {
 		}
 
 		return $message;
+	}
+
+	/**
+	 * Disable requests to wp.org repository for this theme.
+	 *
+	 * @since 1.0.0
+	 */
+	function disable_wporg_request( $r, $url ) {
+
+		// URL used for wp.org theme update checks
+		$wp_url_string = 'api.wordpress.org/themes/update-check';
+
+		// If it's not a theme update check request, bail early
+		if ( false === strpos( $url, $wp_url_string ) ) {
+			return $r;
+		}
+
+		// Un-serialize the response
+		$themes = unserialize( $r['body']['themes'] );
+
+		// Remove the active parent and child themes from the check
+		unset( $themes[ get_option( 'template' ) ] );
+		unset( $themes[ get_option( 'stylesheet' ) ] );
+
+		// Re-serialize the response
+		$r['body']['themes'] = serialize( $themes );
+
+		// Return the request
+		return $r;
 	}
 
 }
