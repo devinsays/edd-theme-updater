@@ -380,26 +380,24 @@ class EDD_Theme_Updater_Admin {
 	 */
 	function disable_wporg_request( $r, $url ) {
 
-		// URL used for wp.org theme update checks
-		$wp_url_string = 'api.wordpress.org/themes/update-check';
+		// If it's not a theme update request, bail.
+		if ( 0 !== strpos( $url, 'https://api.wordpress.org/themes/update-check/1.1/' ) ) {
+ 			return $r;
+ 		}
 
-		// If it's not a theme update check request, bail early
-		if ( false === strpos( $url, $wp_url_string ) ) {
-			return $r;
-		}
+ 		// Decode the JSON response
+ 		$themes = json_decode( $r['body']['themes'] );
 
-		// Un-serialize the response
-		$themes = unserialize( $r['body']['themes'] );
+ 		// Remove the active parent and child themes from the check
+ 		$parent = get_option( 'template' );
+ 		$child = get_option( 'stylesheet' );
+ 		unset( $themes->themes->$parent );
+ 		unset( $themes->themes->$child );
 
-		// Remove the active parent and child themes from the check
-		unset( $themes[ get_option( 'template' ) ] );
-		unset( $themes[ get_option( 'stylesheet' ) ] );
+ 		// Encode the updated JSON response
+ 		$r['body']['themes'] = json_encode( $themes );
 
-		// Re-serialize the response
-		$r['body']['themes'] = serialize( $themes );
-
-		// Return the request
-		return $r;
+ 		return $r;
 	}
 
 }
