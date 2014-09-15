@@ -1,6 +1,6 @@
 <?php
 /**
- * One-click updater for the Summit Theme
+ * One-click updater for theme
  *
  * @package EDD Theme Updater
  */

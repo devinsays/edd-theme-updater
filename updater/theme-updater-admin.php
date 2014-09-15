@@ -58,6 +58,25 @@ class EDD_Theme_Updater_Admin {
 	}
 
 	/**
+	 * Define strings
+	 *
+	 * @since 1.0.0
+	 */
+	protected function default_strings() {
+
+		$strings = array(
+			'title' => __( 'Theme License', 'textdomain' ),
+			'enter-key' => __( 'Enter your theme license key.', 'textdomain' ),
+			'license-key' => __( 'License Key', 'textdomain' ),
+			'license-action' => __( 'License Action', 'textdomain' ),
+			'deactivate-license' => __( 'Deactivate License', 'textdomain' ),
+			'activate-license' => __( 'Activate License', 'textdomain' )
+		);
+
+		return apply_filters( 'edd-theme-updater-strings', $strings );
+	}
+
+	/**
 	 * Creates the updater class.
 	 *
 	 * since 1.0.0
@@ -90,9 +109,12 @@ class EDD_Theme_Updater_Admin {
 	 * since 1.0.0
 	 */
 	function license_menu() {
+
+		$strings = $this->default_strings();
+
 		add_theme_page(
-			__( 'Theme License', 'textdomain' ),
-			__( 'Theme License', 'textdomain' ),
+			$strings['title'],
+			$strings['title'],
 			'manage_options',
 			$this->theme_slug . '-license',
 			array( $this, 'license_page' )
@@ -106,12 +128,14 @@ class EDD_Theme_Updater_Admin {
 	 */
 	function license_page() {
 
+		$strings = $this->default_strings();
+
 		$license = trim( get_option( $this->theme_slug . '_license_key' ) );
 		$status = get_option( $this->theme_slug . '_license_key_status', false );
 
 		// Checks license status to display under license key
 		if ( ! $license ) {
-			$message    = __( 'Enter your theme license key.', 'textdomain' );
+			$message    = $strings['enter-key'];
 		} else {
 			// delete_transient( $this->theme_slug . '_license_message' );
 			if ( ! get_transient( $this->theme_slug . '_license_message', false ) ) {
@@ -121,7 +145,7 @@ class EDD_Theme_Updater_Admin {
 		}
 		?>
 		<div class="wrap">
-			<h2><?php _e( 'Theme License', 'textdomain' ); ?></h2>
+			<h2><?php echo $strings['title'] ?></h2>
 			<form method="post" action="options.php">
 
 				<?php settings_fields( $this->theme_slug . '-license' ); ?>
@@ -131,7 +155,7 @@ class EDD_Theme_Updater_Admin {
 
 						<tr valign="top">
 							<th scope="row" valign="top">
-								<?php _e( 'License Key', 'textdomain' ); ?>
+								<?php echo $strings['license-key']; ?>
 							</th>
 							<td>
 								<input id="<?php echo $this->theme_slug; ?>_license_key" name="<?php echo $this->theme_slug; ?>_license_key" type="text" class="regular-text" value="<?php echo esc_attr( $license ); ?>" />
@@ -144,15 +168,15 @@ class EDD_Theme_Updater_Admin {
 						<?php if ( $license ) { ?>
 						<tr valign="top">
 							<th scope="row" valign="top">
-								<?php _e( 'License Action', 'textdomain' ); ?>
+								<?php echo $strings['license-action']; ?>
 							</th>
 							<td>
 								<?php
 								wp_nonce_field( $this->theme_slug . '_nonce', $this->theme_slug . '_nonce' );
 								if ( 'valid' == $status ) { ?>
-									<input type="submit" class="button-secondary" name="<?php echo $this->theme_slug; ?>_license_deactivate" value="<?php esc_attr_e( 'Deactivate License', 'textdomain' ); ?>"/>
+									<input type="submit" class="button-secondary" name="<?php echo $this->theme_slug; ?>_license_deactivate" value="<?php esc_attr_e( $strings['deactivate-license'] ); ?>"/>
 								<?php } else { ?>
-									<input type="submit" class="button-secondary" name="<?php echo $this->theme_slug; ?>_license_activate" value="<?php esc_attr_e( 'Activate License', 'textdomain' ); ?>"/>
+									<input type="submit" class="button-secondary" name="<?php echo $this->theme_slug; ?>_license_activate" value="<?php esc_attr_e( $strings['activate-license'] ); ?>"/>
 								<?php }
 								?>
 							</td>
