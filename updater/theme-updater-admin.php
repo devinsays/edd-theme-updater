@@ -17,15 +17,16 @@ class EDD_Theme_Updater_Admin {
 	 protected $theme_slug = null;
 	 protected $version = null;
 	 protected $author = null;
+	 protected $strings = null;
 
 	/**
 	 * Initialize the class.
 	 *
 	 * @since 1.0.0
 	 */
-	function __construct( $args = array() ) {
+	function __construct( $config = array(), $strings = array() ) {
 
-		$args = wp_parse_args( $args, array(
+		$config = wp_parse_args( $config, array(
 			'remote_api_url' => 'http://easydigitaldownloads.com',
 			'theme_slug' => get_template(),
 			'item_name' => '',
@@ -33,20 +34,25 @@ class EDD_Theme_Updater_Admin {
 			'version' => '',
 			'author' => ''
 		) );
-		extract( $args );
+		extract( $config );
 
-		// Set args
+		// Set config arguments
 		$this->remote_api_url = $remote_api_url;
 		$this->item_name = $item_name;
 		$this->theme_slug = sanitize_key( $theme_slug );
 		$this->version = $version;
 		$this->author = $author;
 
-		// Populate fallbacks
+		// Populate config version fallback
 		if ( '' == $version ) {
 			$theme = wp_get_theme( $this->theme_slug );
 			$this->version = $theme->get( 'Version' );
 		}
+
+		// Strings
+		// @TODO Should fallbacks be set?
+		// @TODO If so, with text domain?
+		$this->strings = $strings;
 
 		add_action( 'admin_init', array( $this, 'updater' ) );
 		add_action( 'admin_init', array( $this, 'register_option' ) );
@@ -55,25 +61,6 @@ class EDD_Theme_Updater_Admin {
 		add_action( 'update_option_' . $this->theme_slug . '_license_key', array( $this, 'activate_license' ), 10, 2 );
 		add_filter( 'http_request_args', array( $this, 'disable_wporg_request' ), 5, 2 );
 
-	}
-
-	/**
-	 * Define strings
-	 *
-	 * @since 1.0.0
-	 */
-	protected function default_strings() {
-
-		$strings = array(
-			'title' => __( 'Theme License', 'textdomain' ),
-			'enter-key' => __( 'Enter your theme license key.', 'textdomain' ),
-			'license-key' => __( 'License Key', 'textdomain' ),
-			'license-action' => __( 'License Action', 'textdomain' ),
-			'deactivate-license' => __( 'Deactivate License', 'textdomain' ),
-			'activate-license' => __( 'Activate License', 'textdomain' )
-		);
-
-		return apply_filters( 'edd-theme-updater-strings', $strings );
 	}
 
 	/**
@@ -93,13 +80,15 @@ class EDD_Theme_Updater_Admin {
 			include( dirname( __FILE__ ) . '/theme-updater-class.php' );
 		}
 
-		new EDD_Theme_Updater( array(
+		new EDD_Theme_Updater(
+			array(
 				'remote_api_url' 	=> $this->remote_api_url,
 				'version' 			=> $this->version,
 				'license' 			=> trim( get_option( $this->theme_slug . '_license_key' ) ),
 				'item_name' 		=> $this->item_name,
 				'author'			=> $this->author
-			)
+			),
+			$this->strings
 		);
 	}
 
@@ -110,11 +99,11 @@ class EDD_Theme_Updater_Admin {
 	 */
 	function license_menu() {
 
-		$strings = $this->default_strings();
+		$strings = $this->strings;
 
 		add_theme_page(
-			$strings['title'],
-			$strings['title'],
+			$strings['theme-license'],
+			$strings['theme-license'],
 			'manage_options',
 			$this->theme_slug . '-license',
 			array( $this, 'license_page' )
@@ -128,7 +117,7 @@ class EDD_Theme_Updater_Admin {
 	 */
 	function license_page() {
 
-		$strings = $this->default_strings();
+		$strings = $this->strings;
 
 		$license = trim( get_option( $this->theme_slug . '_license_key' ) );
 		$status = get_option( $this->theme_slug . '_license_key_status', false );
@@ -145,7 +134,7 @@ class EDD_Theme_Updater_Admin {
 		}
 		?>
 		<div class="wrap">
-			<h2><?php echo $strings['title'] ?></h2>
+			<h2><?php echo $strings['theme-license'] ?></h2>
 			<form method="post" action="options.php">
 
 				<?php settings_fields( $this->theme_slug . '-license' ); ?>
@@ -333,6 +322,7 @@ class EDD_Theme_Updater_Admin {
 	function check_license() {
 
 		$license = trim( get_option( $this->theme_slug . '_license_key' ) );
+		$strings = $this->strings;
 
 		$api_params = array(
 			'edd_action' => 'check_license',
@@ -344,7 +334,7 @@ class EDD_Theme_Updater_Admin {
 
 		// If response doesn't include license data, return
 		if ( !isset( $license_data->license ) ) {
-			$message = __( 'License status is unknown.', 'textdomain' );
+			$message = $strings['license-unknown'];
 			return $message;
 		}
 
@@ -352,7 +342,7 @@ class EDD_Theme_Updater_Admin {
 		$expires = false;
 		if ( isset( $license_data->expires ) ) {
 			$expires = date_i18n( get_option( 'date_format' ), strtotime( $license_data->expires ) );
-			$renew_link = '<a href="' . esc_url( $this->remote_api_url) . '">' . __( 'Renew?', 'textdomain' ) . '</a>';
+			$renew_link = '<a href="' . esc_url( $this->remote_api_url) . '">' . $strings['renew'] . '</a>';
 		}
 
 		// Get site counts
@@ -361,37 +351,37 @@ class EDD_Theme_Updater_Admin {
 
 		// If unlimited
 		if ( 0 == $license_limit ) {
-			$license_limit = __( 'unlimited', 'textdomain' );
+			$license_limit = $strings['unlimited'];
 		}
 
 		if ( $license_data->license == 'valid' ) {
-			$message = __( 'License key is active.', 'textdomain' ) . ' ';
+			$message = $strings['license-key-is-active'] . ' ';
 			if ( $expires ) {
-				$message .= sprintf( __( 'Expires %s.', 'textdomain' ), $expires ) . ' ';
+				$message .= sprintf( $strings['expires%s'], $expires ) . ' ';
 			}
 			if ( $site_count && $license_limit ) {
-				$message .= sprintf( __( 'You have %1$s / %2$s sites activated.', 'textdomain' ), $site_count, $license_limit );
+				$message .= sprintf( $strings['%1$s/%2$-sites'], $site_count, $license_limit );
 			}
 		} else if ( $license_data->license == 'expired' ) {
 			if ( $expires ) {
-				$message = sprintf( __( 'License key expired %s.', 'textdomain' ), $expires );
+				$message = sprintf( $strings['license-key-expired-%s'], $expires );
 			} else {
-				$message = __( 'License key has expired.', 'textdomain' );
+				$message = $strings['license-key-expired'];
 			}
 			if ( $renew_link ) {
 				$message .= ' ' . $renew_link;
 			}
 		} else if ( $license_data->license == 'invalid' ) {
-			$message = __( 'License keys do not match.', 'textdomain' );
+			$message = $strings['license-keys-do-not-match'];
 		} else if ( $license_data->license == 'inactive' ) {
-			$message = __( 'License is inactive.', 'textdomain' );
+			$message = $strings['license-is-inactive'];
 		} else if ( $license_data->license == 'disabled' ) {
-			$message = __( 'License key is disabled.', 'textdomain' );
+			$message = $strings['license-key-is-disabled'];
 		} else if ( $license_data->license == 'site_inactive' ) {
 			// Site is inactive
-			$message = __( 'Site is inactive.', 'textdomain' );
+			$message = $strings['site-is-inactive'];
 		} else {
-			$message = __( 'License status is unknown.', 'textdomain' );
+			$message = $strings['license-status-unknown'];
 		}
 
 		return $message;
