@@ -19,9 +19,10 @@ $updater = new EDD_Theme_Updater_Admin(
 		'item_name' => 'Theme Name', // Name of theme
 		'theme_slug' => 'theme-slug', // Theme slug
 		'version' => '1.0.0', // The current version of this theme
-		'author' => 'Easy Digital Downloads' // The author of this theme
+		'author' => 'Easy Digital Downloads', // The author of this theme
+		'download_id' => '', // Optional, used for generating a license renewal link
+		'renew_url' => '' // Optional, allows for a custom license renewal link
 	),
-	// Strings should use theme textdomain
 	$strings = array(
 		'theme-license' => __( 'Theme License', 'textdomain' ),
 		'enter-key' => __( 'Enter your theme license key.', 'textdomain' ),

@@ -17,6 +17,8 @@ class EDD_Theme_Updater_Admin {
 	 protected $theme_slug = null;
 	 protected $version = null;
 	 protected $author = null;
+	 protected $download_id = null;
+	 protected $renew_url = null;
 	 protected $strings = null;
 
 	/**
@@ -32,19 +34,22 @@ class EDD_Theme_Updater_Admin {
 			'item_name' => '',
 			'license' => '',
 			'version' => '',
-			'author' => ''
+			'author' => '',
+			'download_id' => '',
+			'renew_url' => ''
 		) );
-		extract( $config );
 
 		// Set config arguments
-		$this->remote_api_url = $remote_api_url;
-		$this->item_name = $item_name;
-		$this->theme_slug = sanitize_key( $theme_slug );
-		$this->version = $version;
-		$this->author = $author;
+		$this->remote_api_url = $config['remote_api_url'];
+		$this->item_name = $config['item_name'];
+		$this->theme_slug = sanitize_key( $config['theme_slug'] );
+		$this->version = $config['version'];
+		$this->author = $config['author'];
+		$this->download_id = $config['download_id'];
+		$this->renew_url = $config['renew_url'];
 
-		// Populate config version fallback
-		if ( '' == $version ) {
+		// Populate version fallback
+		if ( '' == $config['version'] ) {
 			$theme = wp_get_theme( $this->theme_slug );
 			$this->version = $theme->get( 'Version' );
 		}
@@ -292,6 +297,33 @@ class EDD_Theme_Updater_Admin {
 	}
 
 	/**
+	 * Constructs a renewal link
+	 *
+	 * @since 1.0.0
+	 */
+	function get_renewal_link() {
+
+		// If a renewal link was passed in the config, use that
+		if ( '' != $this->renew_url ) {
+			return $this->renew_url;
+		}
+
+		// If download_id was passed in the config, a renewal link can be constructed
+		$license_key = trim( get_option( $this->theme_slug . '_license_key', false ) );
+		if ( '' != $this->download_id && $license_key ) {
+			$url = esc_url( $this->remote_api_url );
+			$url .= '/checkout/?edd_license_key=' . $license_key . '&download_id=' . $this->download_id;
+			return $url;
+		}
+
+		// Otherwise return the remote_api_url
+		return $this->remote_api_url;
+
+	}
+
+
+
+	/**
 	 * Checks if a license action was submitted.
 	 *
 	 * @since 1.0.0
@@ -342,7 +374,7 @@ class EDD_Theme_Updater_Admin {
 		$expires = false;
 		if ( isset( $license_data->expires ) ) {
 			$expires = date_i18n( get_option( 'date_format' ), strtotime( $license_data->expires ) );
-			$renew_link = '<a href="' . esc_url( $this->remote_api_url) . '">' . $strings['renew'] . '</a>';
+			$renew_link = '<a href="' . esc_url( $this->get_renewal_link() ) . '">' . $strings['renew'] . '</a>';
 		}
 
 		// Get site counts
