@@ -30,23 +30,23 @@ class EDD_Theme_Updater_Admin {
 
 		$config = wp_parse_args( $config, array(
 			'remote_api_url' => 'http://easydigitaldownloads.com',
-			'theme_slug' => get_template(),
-			'item_name' => '',
-			'license' => '',
-			'version' => '',
-			'author' => '',
-			'download_id' => '',
-			'renew_url' => ''
+			'theme_slug'     => get_template(),
+			'item_name'      => '',
+			'license'        => '',
+			'version'        => '',
+			'author'         => '',
+			'download_id'    => '',
+			'renew_url'      => ''
 		) );
 
 		// Set config arguments
 		$this->remote_api_url = $config['remote_api_url'];
-		$this->item_name = $config['item_name'];
-		$this->theme_slug = sanitize_key( $config['theme_slug'] );
-		$this->version = $config['version'];
-		$this->author = $config['author'];
-		$this->download_id = $config['download_id'];
-		$this->renew_url = $config['renew_url'];
+		$this->item_name      = $config['item_name'];
+		$this->theme_slug     = sanitize_key( $config['theme_slug'] );
+		$this->version        = $config['version'];
+		$this->author         = $config['author'];
+		$this->download_id    = $config['download_id'];
+		$this->renew_url      = $config['renew_url'];
 
 		// Populate version fallback
 		if ( '' == $config['version'] ) {
@@ -85,11 +85,11 @@ class EDD_Theme_Updater_Admin {
 
 		new EDD_Theme_Updater(
 			array(
-				'remote_api_url' 	=> $this->remote_api_url,
-				'version' 			=> $this->version,
-				'license' 			=> trim( get_option( $this->theme_slug . '_license_key' ) ),
-				'item_name' 		=> $this->item_name,
-				'author'			=> $this->author
+				'remote_api_url' => $this->remote_api_url,
+				'version'        => $this->version,
+				'license'        => trim( get_option( $this->theme_slug . '_license_key' ) ),
+				'item_name'      => $this->item_name,
+				'author'         => $this->author
 			),
 			$this->strings
 		);
@@ -370,7 +370,7 @@ class EDD_Theme_Updater_Admin {
 
 		// Get expire date
 		$expires = false;
-		if ( isset( $license_data->expires ) ) {
+		if ( isset( $license_data->expires ) && $license_data->expires !== 'lifetime' ) {
 			$expires = date_i18n( get_option( 'date_format' ), strtotime( $license_data->expires ) );
 			$renew_link = '<a href="' . esc_url( $this->get_renewal_link() ) . '" target="_blank">' . $strings['renew'] . '</a>';
 		}
@@ -385,22 +385,31 @@ class EDD_Theme_Updater_Admin {
 		}
 
 		if ( $license_data->license == 'valid' ) {
+			
 			$message = $strings['license-key-is-active'] . ' ';
-			if ( $expires ) {
+			
+			if ( false === $expires ) {
+				$message .= sprintf( $strings['lifetime'] ) . ' ';
+			} else {
 				$message .= sprintf( $strings['expires%s'], $expires ) . ' ';
 			}
+			
 			if ( $site_count && $license_limit ) {
 				$message .= sprintf( $strings['%1$s/%2$-sites'], $site_count, $license_limit );
 			}
+			
 		} else if ( $license_data->license == 'expired' ) {
+			
 			if ( $expires ) {
 				$message = sprintf( $strings['license-key-expired-%s'], $expires );
 			} else {
 				$message = $strings['license-key-expired'];
 			}
+			
 			if ( $renew_link ) {
 				$message .= ' ' . $renew_link;
 			}
+			
 		} else if ( $license_data->license == 'invalid' ) {
 			$message = $strings['license-keys-do-not-match'];
 		} else if ( $license_data->license == 'inactive' ) {
